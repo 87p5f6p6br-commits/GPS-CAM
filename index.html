@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101113">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GPS CAMERA">
+<meta name="description" content="Камера с GPS-координатами для рабочих фотографий">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>GPS CAMERA</title>
+<style>
+:root{color-scheme:dark;--bg:#101113;--panel:#191b1f;--panel2:#22252a;--line:#30343a;--text:#f4f5f6;--muted:#9299a3;--green:#36c98a;--red:#ff6969;--amber:#f2b95d}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,input,select{font:inherit}button{cursor:pointer;color:inherit}
+.app{max-width:720px;margin:auto;min-height:100dvh;display:flex;flex-direction:column}
+header{height:66px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #22252a}
+.brand{font-weight:800;letter-spacing:.045em;font-size:18px}.brand span{color:var(--green)}.subbrand{font-size:9px;color:var(--muted);letter-spacing:.13em;margin-top:3px}
+.status{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--green);font-weight:700}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px #36c98a66}
+main{flex:1;padding:14px 14px 92px;overflow:auto}.screen{display:none}.screen.active{display:block}
+.camera-frame{position:relative;background:#08090b;border-radius:18px;overflow:hidden;aspect-ratio:3/4;max-height:62dvh;display:flex;align-items:center;justify-content:center}
+video{width:100%;height:100%;object-fit:cover;background:#08090b}.camera-placeholder{padding:25px;text-align:center;color:var(--muted);line-height:1.5}
+.live-gps{position:absolute;left:12px;right:12px;bottom:12px;background:#101113df;border:1px solid #ffffff20;border-radius:13px;padding:11px 12px;backdrop-filter:blur(12px)}
+.live-gps strong{display:block;font-size:14px;letter-spacing:.01em}.live-gps small{display:block;color:#b4bbc4;margin-top:4px;font-size:11px}
+.controls{display:flex;align-items:center;justify-content:space-between;padding:18px 8px 8px}.side-control{width:72px;text-align:center;color:var(--muted);font-size:10px;background:none;border:0;display:flex;align-items:center;flex-direction:column;gap:7px}
+.circle-btn{width:68px;height:68px;border-radius:50%;background:#f4f5f6;border:4px solid #858b93;box-shadow:0 0 0 3px #f4f5f6;display:grid;place-items:center}.circle-btn:after{content:"";width:48px;height:48px;border:2px solid #17191d;border-radius:50%}
+.icon-round{width:42px;height:42px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-size:18px}
+.pills{display:flex;justify-content:center;gap:8px;margin:8px 0}.pill{border:1px solid var(--line);border-radius:30px;padding:7px 13px;color:var(--muted);font-size:11px;background:transparent}.pill.selected{background:#123a2c;border-color:#207b57;color:var(--green)}
+.panel{background:var(--panel);border:1px solid #292d33;border-radius:16px;padding:14px;margin:10px 0}
+h1{font-size:23px;margin:4px 0 14px}h2{font-size:16px;margin:18px 0 10px}p{color:var(--muted);font-size:13px;line-height:1.5}
+.btn{border:0;border-radius:13px;padding:13px 16px;background:var(--green);color:#062216;font-weight:750}.btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.btn.danger{background:#402326;color:#ffaaaa}.btn:disabled{opacity:.4}
+.full{width:100%}.row{display:flex;align-items:center;gap:10px}.between{justify-content:space-between}.muted{color:var(--muted)}.tiny{font-size:11px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.photo-card{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden}.photo-card img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:#222}.photo-card .meta{padding:9px;font-size:11px}.coords{font-size:12px;font-weight:650}
+nav{position:fixed;z-index:10;bottom:0;left:0;right:0;max-width:720px;margin:auto;background:#111316f2;backdrop-filter:blur(18px);border-top:1px solid #2b2e34;padding:9px 5px calc(9px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{background:none;border:0;color:var(--muted);font-size:9px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px 0}nav button b{font-size:19px;font-weight:500}nav button.active{color:var(--green)}
+.field{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:13px}.field:last-child{border:0}.field label{color:var(--muted)}.field input,.field select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:7px;max-width:150px}
+.preview-img{width:100%;border-radius:14px;display:block}.segmented{display:flex;background:var(--panel);padding:4px;border-radius:12px;margin:12px 0}.segmented button{flex:1;background:none;border:0;padding:9px;border-radius:9px;color:var(--muted);font-size:12px}.segmented button.active{background:#30343a;color:white}
+#mapFrame{width:100%;height:48vh;border:0;border-radius:14px;background:#202329}.notice{border-radius:12px;padding:11px;background:#28251c;color:#e9c98b;font-size:12px;line-height:1.45}.good{color:var(--green)}.bad{color:var(--red)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div><div class="brand">GPS <span>CAMERA</span></div><div class="subbrand">LOCATION PHOTOGRAPHY</div></div>
+ <div class="status"><i class="dot" id="gpsDot"></i><span id="gpsStatus">GPS: ожидание</span></div>
+</header>
+<main>
+<section id="camera" class="screen active">
+ <div class="row between" style="margin:2px 2px 12px"><span class="tiny">КАМЕРА</span><button class="pill" id="refreshGps">Обновить GPS</button></div>
+ <div class="camera-frame">
+  <video id="video" autoplay playsinline muted></video>
+  <div class="camera-placeholder" id="cameraPlaceholder">Разреши доступ к камере и геолокации, чтобы начать съёмку.<br><br><button class="btn" id="startCamera">Включить камеру</button></div>
+  <div class="live-gps"><strong id="liveCoords">Ожидание координат…</strong><small id="liveAccuracy">Точность пока неизвестна</small></div>
+ </div>
+ <div class="pills"><span class="pill selected">1×</span><span class="pill">GPS AUTO</span><span class="pill">JPEG</span></div>
+ <div class="controls">
+  <button class="side-control" id="lastPhoto"><span class="icon-round">▧</span>Последнее фото</button>
+  <button class="circle-btn" id="capture" aria-label="Сделать фото" disabled></button>
+  <button class="side-control" id="switchCamera"><span class="icon-round">↻</span>Камера</button>
+ </div>
+ <div class="notice" id="gpsWarning">Для максимальной доступной точности включи геолокацию iPhone и разреши Safari доступ к местоположению. В помещении GPS может быть менее точным.</div>
+</section>
+
+<section id="preview" class="screen">
+ <div class="row between"><h1>Предпросмотр</h1><button class="pill" data-go="camera">Закрыть</button></div>
+ <img id="previewImage" class="preview-img" alt="Предпросмотр фотографии">
+ <div class="segmented"><button id="showOriginal" class="active">Оригинал</button><button id="showStamped">С GPS</button></div>
+ <div class="panel" id="previewMeta"></div>
+ <div class="row"><button class="btn secondary" id="retake" style="flex:1">Переснять</button><button class="btn" id="sharePhotos" style="flex:1">Поделиться</button></div>
+ <button class="btn secondary full" id="downloadBoth" style="margin-top:9px">Скачать обе версии</button>
+</section>
+
+<section id="photos" class="screen">
+ <div class="row between"><h1>Мои фотографии</h1><span class="tiny" id="photoCount">0 снимков</span></div>
+ <div class="segmented"><button class="active" data-filter="all">Все</button><button data-filter="gps">С GPS</button></div>
+ <div class="grid" id="photoGrid"></div><p id="emptyPhotos">Фотографий пока нет. Сделай первый снимок на вкладке «Камера».</p>
+</section>
+
+<section id="map" class="screen">
+ <h1>Карта съёмок</h1>
+ <p>Выбери фотографию из списка, чтобы открыть её координаты на карте.</p>
+ <div id="mapWrap" class="panel"><div class="tiny">Карта загружается при наличии интернета.</div><iframe id="mapFrame" title="Карта фотографий" loading="lazy"></iframe></div>
+ <div id="mapList"></div>
+</section>
+
+<section id="history" class="screen">
+ <div class="row between"><h1>История съёмок</h1><span class="tiny" id="historyCount">0 записей</span></div>
+ <div id="historyList"></div>
+</section>
+
+<section id="settings" class="screen">
+ <h1>Настройки</h1>
+ <div class="panel"><h2>Камера</h2>
+  <div class="field"><label>Камера по умолчанию</label><span>Задняя</span></div>
+  <div class="field"><label>Формат снимка</label><select id="quality"><option value="0.92">Высокое качество</option><option value="0.82">Сбалансированное</option></select></div>
+  <div class="field"><label>Сетка кадра</label><input type="checkbox" id="gridToggle"></div>
+ </div>
+ <div class="panel"><h2>GPS</h2>
+  <div class="field"><label>Высокая точность</label><span class="good">Включена</span></div>
+  <div class="field"><label>Порог предупреждения</label><select id="threshold"><option>25</option><option selected>50</option><option>100</option><option>250</option></select></div>
+  <div class="field"><label>Формат координат</label><select id="coordFormat"><option value="decimal">Десятичный</option><option value="dms">Градусы / минуты / секунды</option></select></div>
+  <div class="field"><label>Показывать точность</label><input type="checkbox" id="showAccuracy" checked></div>
+ </div>
+ <div class="panel"><h2>Сохранение</h2>
+  <div class="field"><label>Оригинал + GPS-копия</label><span class="good">Включено</span></div>
+  <div class="field"><label>История на устройстве</label><span class="good">Включена</span></div>
+ </div>
+ <div class="panel"><h2>О приложении</h2><p>GPS CAMERA — веб-приложение. Данные фотографий хранятся локально в этом браузере. Очистка данных Safari может удалить историю приложения. Регулярно экспортируй важные снимки.</p><button class="btn secondary full" id="exportData">Экспортировать список записей</button></div>
+</section>
+</main>
+<nav>
+ <button class="active" data-tab="camera"><b>◎</b>Камера</button>
+ <button data-tab="photos"><b>▦</b>Фото</button>
+ <button data-tab="map"><b>⌖</b>Карта</button>
+ <button data-tab="history"><b>◷</b>История</button>
+ <button data-tab="settings"><b>⚙</b>Настройки</button>
+</nav>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let stream=null, facing='environment', position=null, watchId=null, records=[], currentRecord=null, currentView='stamped', filter='all';
+const DB='gps-camera-db', STORE='photos';
+function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+async function dbPut(item){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(item);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function dbAll(){const db=await openDB();return new Promise((res,rej)=>{const r=db.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>res(r.result.sort((a,b)=>b.timestamp-a.timestamp));r.onerror=()=>rej(r.error)})}
+function fmtCoord(n,lat){const dir=lat?(n>=0?'N':'S'):(n>=0?'E':'W');if($('coordFormat').value==='dms'){let a=Math.abs(n),d=Math.floor(a),m=Math.floor((a-d)*60),s=(((a-d)*60)-m)*60;return `${d}°${m}′${s.toFixed(1)}″ ${dir}`}return `${Math.abs(n).toFixed(6)}° ${dir}`}
+function coordText(p){return `${fmtCoord(p.latitude,true)}  ${fmtCoord(p.longitude,false)}`}
+function updateGPS(p){position=p;const acc=Math.round(p.coords.accuracy);$('gpsStatus').textContent=`GPS ±${acc} м`;$('gpsDot').style.background=acc<=Number($('threshold').value)?'var(--green)':'var(--amber)';$('liveCoords').textContent=coordText(p.coords);$('liveAccuracy').textContent=`Точность: ±${acc} м · ${new Date(p.timestamp).toLocaleTimeString('ru-RU')}`;$('gpsWarning').textContent=acc>Number($('threshold').value)?`Текущая точность ±${acc} м. Рекомендуется подождать улучшения сигнала (порог предупреждения: ${$('threshold').value} м).`:'GPS получен. Точность зависит от условий приёма сигнала и может изменяться.'}
+function gpsError(e){$('gpsStatus').textContent='GPS недоступен';$('gpsDot').style.background='var(--red)';$('liveCoords').textContent='Координаты недоступны';$('liveAccuracy').textContent=e.message||'Проверь разрешение Safari на геолокацию';$('gpsWarning').textContent='Не удалось получить GPS. Проверь Настройки iPhone → Конфиденциальность и безопасность → Службы геолокации → Safari.'}
+function startGPS(){if(!('geolocation'in navigator)){gpsError({message:'Геолокация не поддерживается'});return}if(watchId!==null)navigator.geolocation.clearWatch(watchId);watchId=navigator.geolocation.watchPosition(updateGPS,gpsError,{enableHighAccuracy:true,maximumAge:0,timeout:20000})}
+function freshGPS(){return new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(Error('Геолокация недоступна'));navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,maximumAge:0,timeout:25000})})}
+async function startCamera(){try{if(!navigator.mediaDevices?.getUserMedia)throw Error('Камера доступна только через HTTPS и поддерживаемый Safari.');if(stream)stream.getTracks().forEach(t=>t.stop());stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:1920},height:{ideal:1440}}});$('video').srcObject=stream;$('cameraPlaceholder').classList.add('hidden');$('capture').disabled=false;startGPS()}catch(e){$('cameraPlaceholder').classList.remove('hidden');$('cameraPlaceholder').innerHTML=`Не удалось включить камеру.<br>${e.message}<br><br><button class="btn" id="retryCamera">Повторить</button>`;$('retryCamera').onclick=startCamera}}
+function canvasBlob(canvas,type='image/jpeg',quality=.92){return new Promise(resolve=>canvas.toBlob(resolve,type,quality))}
+async function capture(){if(!stream)return;const btn=$('capture');btn.disabled=true;try{let pos=await freshGPS();updateGPS(pos);const v=$('video'),canvas=document.createElement('canvas');canvas.width=v.videoWidth;canvas.height=v.videoHeight;const ctx=canvas.getContext('2d');ctx.drawImage(v,0,0,canvas.width,canvas.height);const original=await canvasBlob(canvas,'image/jpeg',Number($('quality').value));const stampedCanvas=document.createElement('canvas');stampedCanvas.width=canvas.width;stampedCanvas.height=canvas.height;const c=stampedCanvas.getContext('2d');c.drawImage(canvas,0,0);const scale=canvas.width/390,pad=18*scale,h=64*scale;c.fillStyle='rgba(12,14,17,.82)';roundRect(c,pad,canvas.height-h-pad,canvas.width-pad*2,h,12*scale);c.fill();c.fillStyle='#36c98a';c.beginPath();c.arc(pad+20*scale,canvas.height-pad-h/2,6*scale,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.font=`600 ${15*scale}px -apple-system, sans-serif`;c.fillText(coordText(pos.coords),pad+36*scale,canvas.height-pad-h/2+5*scale);c.fillStyle='#c1c7ce';c.font=`${10*scale}px -apple-system, sans-serif`;c.fillText(`GPS accuracy ±${Math.round(pos.coords.accuracy)} m  ·  ${new Date().toLocaleString('ru-RU')}`,pad+36*scale,canvas.height-pad-12*scale);const stamped=await canvasBlob(stampedCanvas,'image/jpeg',Number($('quality').value));const timestamp=Date.now(),id=crypto.randomUUID();currentRecord={id,timestamp,latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy,original,stamped,width:canvas.width,height:canvas.height};await dbPut(currentRecord);records=await dbAll();showPreview(currentRecord);renderAll()}catch(e){alert('Не удалось сделать снимок: '+e.message)}finally{btn.disabled=false}}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function blobURL(blob){return URL.createObjectURL(blob)}
+function showPreview(r){currentRecord=r;currentView='stamped';$('previewImage').src=blobURL(r.stamped);$('showStamped').classList.add('active');$('showOriginal').classList.remove('active');$('previewMeta').innerHTML=`<div class="field"><label>Координаты</label><b>${coordText(r)}</b></div><div class="field"><label>Точность</label><b>±${Math.round(r.accuracy)} м</b></div><div class="field"><label>Дата и время</label><b>${new Date(r.timestamp).toLocaleString('ru-RU')}</b></div><div class="field"><label>Размер</label><b>${r.width} × ${r.height}</b></div><p>Обе версии сохранены в истории приложения. Файлы можно экспортировать на iPhone.</p>`;go('preview')}
+function switchPreview(v){currentView=v;$('previewImage').src=blobURL(v==='original'?currentRecord.original:currentRecord.stamped);$('showOriginal').classList.toggle('active',v==='original');$('showStamped').classList.toggle('active',v==='stamped')}
+function downloadBlob(blob,name){const a=document.createElement('a');const u=blobURL(blob);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
+async function shareFiles(){if(!currentRecord)return;const files=[new File([currentRecord.original],`GPS_${currentRecord.id}_original.jpg`,{type:'image/jpeg'}),new File([currentRecord.stamped],`GPS_${currentRecord.id}_stamped.jpg`,{type:'image/jpeg'})];if(navigator.canShare?.({files})&&navigator.share){try{await navigator.share({title:'GPS CAMERA',files})}catch(e){if(e.name!=='AbortError')alert('Поделиться не удалось. Используй скачивание файлов.')}}else{downloadBlob(currentRecord.original,'GPS_original.jpg');setTimeout(()=>downloadBlob(currentRecord.stamped,'GPS_stamped.jpg'),500)}}
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));if(id==='photos')renderPhotos();if(id==='history')renderHistory();if(id==='map')renderMap()}
+function renderPhotos(){const arr=filter==='gps'?records:records;$('photoCount').textContent=arr.length+' снимков';$('emptyPhotos').classList.toggle('hidden',arr.length>0);$('photoGrid').innerHTML=arr.map(r=>`<div class="photo-card" data-id="${r.id}"><img src="${blobURL(r.stamped)}"><div class="meta"><div class="coords">${coordText(r)}</div><div class="tiny">${new Date(r.timestamp).toLocaleString('ru-RU')}</div></div></div>`).join('');document.querySelectorAll('.photo-card').forEach(el=>el.onclick=()=>showPreview(records.find(r=>r.id===el.dataset.id)))}
+function renderHistory(){$('historyCount').textContent=records.length+' записей';$('historyList').innerHTML=records.map(r=>`<div class="panel row" data-id="${r.id}"><img src="${blobURL(r.stamped)}" style="width:76px;height:76px;object-fit:cover;border-radius:10px"><div style="flex:1;min-width:0"><b>${new Date(r.timestamp).toLocaleTimeString('ru-RU')}</b><div class="tiny">${coordText(r)}</div><div class="good tiny">● Сохранено</div></div><span>›</span></div>`).join('');document.querySelectorAll('#historyList .panel').forEach(el=>el.onclick=()=>showPreview(records.find(r=>r.id===el.dataset.id)))}
+function renderMap(){if(!records.length){$('mapList').innerHTML='<p>Мест съёмки пока нет.</p>';return}const r=records[0],lat=r.latitude,lon=r.longitude,delta=.01;$('mapFrame').src=`https://www.openstreetmap.org/export/embed.html?bbox=${lon-delta}%2C${lat-delta}%2C${lon+delta}%2C${lat+delta}&layer=mapnik&marker=${lat}%2C${lon}`;$('mapList').innerHTML=records.map(x=>`<div class="panel row between"><div><b>${new Date(x.timestamp).toLocaleString('ru-RU')}</b><div class="tiny">${coordText(x)}</div></div><button class="pill" data-lat="${x.latitude}" data-lon="${x.longitude}">Открыть</button></div>`).join('');document.querySelectorAll('#mapList button').forEach(b=>b.onclick=()=>window.open(`https://www.openstreetmap.org/?mlat=${b.dataset.lat}&mlon=${b.dataset.lon}#map=17/${b.dataset.lat}/${b.dataset.lon}`,'_blank'))}
+function renderAll(){renderPhotos();renderHistory()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.tab));document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+$('startCamera').onclick=startCamera;$('capture').onclick=capture;$('refreshGps').onclick=()=>{startGPS();freshGPS().then(updateGPS).catch(gpsError)};$('switchCamera').onclick=()=>{facing=facing==='environment'?'user':'environment';startCamera()};$('lastPhoto').onclick=()=>records[0]?showPreview(records[0]):go('photos');
+$('showOriginal').onclick=()=>switchPreview('original');$('showStamped').onclick=()=>switchPreview('stamped');$('retake').onclick=()=>go('camera');$('sharePhotos').onclick=shareFiles;$('downloadBoth').onclick=()=>{downloadBlob(currentRecord.original,'GPS_original.jpg');setTimeout(()=>downloadBlob(currentRecord.stamped,'GPS_stamped.jpg'),500)};
+document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x===b));renderPhotos()});
+$('exportData').onclick=()=>{const data=records.map(({id,timestamp,latitude,longitude,accuracy,width,height})=>({id,timestamp:new Date(timestamp).toISOString(),latitude,longitude,accuracy,width,height}));downloadBlob(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'gps-camera-records.json')};
+async function init(){try{records=await dbAll();renderAll()}catch(e){console.warn(e)}if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});if(navigator.geolocation)startGPS()}
+init();
+</script>
+</body></html>
